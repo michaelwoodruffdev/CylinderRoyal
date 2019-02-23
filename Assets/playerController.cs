@@ -13,6 +13,7 @@ public class playerController : MonoBehaviour {
     private bool jumped;
     private Vector3 jumpForceVector;
     private float jumpForce;
+    private bool isMidAir;
 
     private Vector3 standVector;
     private Vector3 crouchVector;
@@ -27,9 +28,10 @@ public class playerController : MonoBehaviour {
         Debug.Log(playerTransform);
         yRotation = new Vector3(0, 0, 0);
         translation = new Vector3(0, 0, 0);
-        rotateSpeed = 100f;
+        rotateSpeed = 200f;
         moveSpeed = 10f;
         jumped = false;
+        isMidAir = false;
 
         standVector = new Vector3(0.5778568f, 0.7373421f, 0.5068351f);
         crouchVector = new Vector3(0.5778568f, 0.4373421f, 0.5068351f);
@@ -48,18 +50,13 @@ public class playerController : MonoBehaviour {
         {
             playerTransform.localScale = crouchVector;
             moveSpeed = 3f;
-        } else
+        } else if (Input.GetKey(KeyCode.LeftShift))
         {
             playerTransform.localScale = standVector;
-            moveSpeed = 10f;
-        }
-
-        // adjust speed with shift key
-        if (Input.GetKey(KeyCode.LeftShift) && !(Input.GetKey(KeyCode.C)))
-        {
             moveSpeed = 20f;
         } else
         {
+            playerTransform.localScale = standVector;
             moveSpeed = 10f;
         }
 
@@ -78,8 +75,10 @@ public class playerController : MonoBehaviour {
         playerTransform.Translate(translation * Time.deltaTime);
 
         // handle jump
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!isMidAir && Input.GetKeyDown(KeyCode.Space))
         {
+            Debug.Log("IsMidAir: " + isMidAir);
+            Debug.Log("Space Hit");
             jumped = true;
         }
 
@@ -89,8 +88,27 @@ public class playerController : MonoBehaviour {
     {
         if (jumped)
         {
+            Debug.Log("WHATTUP");
             playerRigidBody.AddForce(jumpForceVector);
             jumped = false;
+        }
+    }
+
+    void OnCollisionEnter (Collision col)
+    {
+        if (col.gameObject.name == "ground")
+        {
+            Debug.Log("ground hit");
+            isMidAir = false;
+        }
+    }
+
+    void OnCollisionExit (Collision col)
+    {
+        if (col.gameObject.name == "ground")
+        {
+            Debug.Log("ground left");
+            isMidAir = true;
         }
     }
 }
